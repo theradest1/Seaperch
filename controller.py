@@ -39,6 +39,7 @@ class device:
 
             # debug
             print("\n\n\n\n\n\n\n\n")
+            print(f"Message: {message}")
             print(f"Front: {front}")
             print(f"Back: {back}")
             print(f"Left: {left}")
@@ -163,7 +164,7 @@ right trigger:  +front +back = go up
 ps4Controller = controller()
 
 # initialize arduino
-arduino = device()
+arduino = device("/dev/ttyACM0")
 
 printClock = time.time()
 updateInterval = 0.1  # in seconds

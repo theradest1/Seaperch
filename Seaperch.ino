@@ -2,7 +2,6 @@
 int pin1s[] = {2, 7, 10, 12};
 int pin2s[] = {4, 8, 11, 13};
 int pinPWMs[] = {3, 5, 6, 9}; // pin1, pin2, pwm pin
-int speeds[] = {0, 0, 0, 0};
 
 // motor 1 = front
 // motor 2 = back
@@ -52,8 +51,38 @@ void loop()
   // process if hit string end
   if (stringEnded)
   {
-    // debug
-    Serial.println("Received String: " + stringBuilder);
+    Serial.println("Received thing: " + stringBuilder);
+
+    //split string into parts
+    String strSpeeds[] = {"", "", "", ""};
+    for (int i = 0; i < stringBuilder.length(); i++)
+    {
+      char currentChar = stringBuilder.charAt(i);
+      int currentSpeed = int(i/4);
+      strSpeeds[currentSpeed] += currentChar;
+    }
+
+    //parse each string into an int
+    for (int i = 0; i < 4; i++){
+      
+      //load string
+      String unparsedSpeed = strSpeeds[i];
+      
+      //change N to negative
+      unparsedSpeed.replace('N', '-');
+      
+      //remove leading zeros
+      if(unparsedSpeed.startsWith("0")){
+        int j = 0;
+        while (j < unparsedSpeed.length() && unparsedSpeed.startsWith("0")){
+          unparsedSpeed.remove(j, 1);
+          j++;
+        }
+      }
+
+      //convert to int and use
+      setMotor(i, unparsedSpeed.toInt());
+    }
 
     // reset builder and flag
     stringBuilder = "";
@@ -96,4 +125,6 @@ void setMotor(int motor, int speed)
   {
     analogWrite(pwmPin, 0);
   }
+
+  //Serial.println("Set motor " + String(motor) + " to " + String(speed));
 }
