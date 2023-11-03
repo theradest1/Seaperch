@@ -12,6 +12,16 @@ class device:
         self.serial.close()
 
 
+# motors 1 and 2 - yaw, forward/backward
+# motors 3 and 4 - pitch, up/down
+# motors 4 and 5 - roll (not currently here)
+
+# left joystick - (yaw, forward/backward)
+# right joystick - (roll, pitch)
+# left triggers - up
+# right triggers - down
+
+
 # open new device
 arduino = device()
 
