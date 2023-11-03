@@ -1,13 +1,26 @@
 import serial
 
-# Define the serial port and baud rate
-arduino = serial.Serial('COM4', 9600)  # Change 'COM4' to your Arduino's serial port
+
+class device:
+    def __init__(self, port="COM4", baud=9600):
+        self.serial = serial.Serial(port, baud)
+
+    def sendMessage(self, message):
+        self.serial.write(message.encode())
+
+    def close(self):
+        self.serial.close()
+
+
+# open new device
+arduino = device()
 
 try:
     while True:
-        data_to_send = input("Enter data to send to Arduino: ")
-        arduino.write(data_to_send.encode())  # send data
+        data_to_send = input("Enter speed (0-255): ")
+        data_to_send += str(int(input("Enter motor (1-4): ")) - 1)
+        arduino.sendMessage(data_to_send)
+        # send data
 except KeyboardInterrupt:
-    arduino.write("0".encode())  # turn off motors
-    print("Program terminated.")
+    print("Closed")
     arduino.close()
