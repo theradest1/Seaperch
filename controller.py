@@ -30,6 +30,19 @@ class device:
     def sendMessage(self, message):
         if not self.debugMode:
             self.serial.write(message.encode())
+        else:
+            # parse speeds
+            front = int(message[0:4].lstrip("0").replace("N", "-") + "0") / 10
+            back = int(message[4:8].lstrip("0").replace("N", "-") + "0") / 10
+            left = int(message[8:12].lstrip("0").replace("N", "-") + "0") / 10
+            right = int(message[12:16].lstrip("0").replace("N", "-") + "0") / 10
+
+            # debug
+            print("\n\n\n\n\n\n\n\n")
+            print(f"Front: {front}")
+            print(f"Back: {back}")
+            print(f"Left: {left}")
+            print(f"Right: {right}")
 
     def close(self):
         if not self.debugMode:
@@ -76,11 +89,28 @@ def debug():
     print(f"Right: {rightMotor:.{3}f}")
 
 
+def floatsToSpeeds(*args):
+    speeds = ""
+
+    for arg in args:
+        arg *= 255
+
+        # clamp -255 to 255
+        arg = max(min(arg, 255), -255)
+
+        # round and format to be 4 characters
+        speeds += str(int(arg)).replace("-", "N").zfill(4)
+
+    return speeds
+
+
 def syncMotors():
     global frontMotor, backMotor, leftMotor, rightMotor
     global arduino
+    message = floatsToSpeeds(frontMotor, backMotor, leftMotor, rightMotor)
 
-    arduino.sendMessage(f"{frontMotor}{backMotor}{leftMotor}{rightMotor}")
+    # print(message)
+    arduino.sendMessage(message)
 
 
 def translateInputs():
@@ -90,24 +120,42 @@ def translateInputs():
     # reset motor speeds
     frontMotor = backMotor = leftMotor = rightMotor = 0
 
+    # left stick x
+    rightMotor -= leftStick[0]
+    leftMotor += leftStick[0]
+
+    # left stick y
+    rightMotor += leftStick[1]
+    leftMotor += leftStick[1]
+
+    # right stick x
+
+    # right stick y
+    frontMotor -= rightStick[1]
+    backMotor += rightStick[1]
+
+    # left trigger
+    frontMotor -= leftTrigger
+    backMotor -= leftTrigger
+
+    # right trigger
+    frontMotor += rightTrigger
+    backMotor += rightTrigger
+
 
 # inputs -> outputs
 """
-left stick positive X:  -right +left
-left stick negative X:  +right -left
+left stick X:  -right +left = rotate right
 
-left stick positive Y:  +right +left
-left stick negative Y:  -right -left
+left stick Y:  +right +left = move forward
 
-right stick positive X: none (roll in the future)
-right stick negative X: none (roll in the future)
+right stick X: none (roll in the future)
 
-right stick positive Y: +front -back
-right stick negative Y: -front +back
+right stick Y: -front +back = rotate down
 
-left trigger:   +front +back
+left trigger:   -front -back = go down
 
-right trigger:  -front -back
+right trigger:  +front +back = go up
 """
 
 
@@ -138,7 +186,7 @@ try:
         if time.time() - printClock >= updateInterval:
             translateInputs()
             syncMotors()
-            debug()
+            # debug()
             printClock = time.time()
 
 except KeyboardInterrupt:
