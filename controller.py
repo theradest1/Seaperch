@@ -15,6 +15,7 @@ leftMotor = 0  # facing forward: 3
 rightMotor = 0  # facing forward: 4
 
 arduinoPort = "/dev/ttyACM0"  # "COM4"
+updateInterval = 0.05  # in seconds
 
 
 class device:
@@ -169,7 +170,6 @@ ps4Controller = controller()
 arduino = device(arduinoPort)
 
 printClock = time.time()
-updateInterval = 0.1  # in seconds
 try:
     while True:
         for event in pygame.event.get():
