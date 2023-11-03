@@ -1,6 +1,6 @@
 import pygame
 import time
-import serial #pip install pyserial
+import serial  # pip install pyserial
 
 # inputs
 leftStick = (0, 0)
@@ -14,9 +14,11 @@ backMotor = 0  # facing up: 2
 leftMotor = 0  # facing forward: 3
 rightMotor = 0  # facing forward: 4
 
+arduinoPort = "/dev/ttyACM0"  # "COM4"
+
 
 class device:
-    def __init__(self, port="COM4", baud=9600):
+    def __init__(self, port, baud=9600):
         try:
             self.serial = serial.Serial(port, baud)
             print(f"Connected to arduino on port {port} with baud of {baud}")
@@ -164,7 +166,7 @@ right trigger:  +front +back = go up
 ps4Controller = controller()
 
 # initialize arduino
-arduino = device()
+arduino = device(arduinoPort)
 
 printClock = time.time()
 updateInterval = 0.1  # in seconds
