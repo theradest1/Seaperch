@@ -4,55 +4,67 @@ int pin2s[] = {4, 8, 11, 13};
 int pinPWMs[] = {3, 5, 6, 9}; // pin1, pin2, pwm pin
 int speeds[] = {0, 0, 0, 0};
 
+// motor 1 = front
+// motor 2 = back
+// motor 3 = left
+// motor 4 = right
+
 int motors = 4;
-int minSpeed = 70;
+int minSpeed = 80; // so they dont stall and burn out
+
+bool stringEnded = false;
+char stringDelimiter = '\n';
+String stringBuilder = "";
 
 void setup()
-{ 
-  // put your setup code here, to run once:
-  Serial.setTimeout(10); // stops reading after 2ms
+{
+  // set used pins to output
   for (int i = 0; i < motors; i++)
   {
-    pinMode(pin2s[i], OUTPUT);
+    pinMode(pin1s[i], OUTPUT);
     pinMode(pin2s[i], OUTPUT);
   }
-  
+
+  // initialize communication
   Serial.begin(9600);
 }
 
 void loop()
 {
-  if (Serial.available() > 0)
+  // keep reading stream while things are there
+  while (Serial.available() > 0)
   {
-    int receivedValue = Serial.parseInt(); // Read and parse the integer from the serial input
+    // get next character
+    char incomingByte = Serial.read();
 
-    int motor = receivedValue % 10 - 1;
-    Serial.print("Motor: ");
-    Serial.println(motor);
-    int speed = int(receivedValue/10);
-    Serial.print("Speed: ");
-    Serial.println(speed);
-
-    setMotor(motor, speed);
+    if (incomingByte == stringDelimiter)
+    {
+      // end building if hits end of string
+      stringEnded = true;
+    }
+    else
+    {
+      // otherwise add the next charto the builder
+      stringBuilder += incomingByte;
+    }
   }
 
-  // set speed
-  // setMotor(motor1Pin1, motor1Pin2, motor1PinPWM, motor1Speed);
-
-  // delay(100);
-}
-
-void setAllMotors(int speed)
-{
-  for (int i = 0; i < motors; i++)
+  // process if hit string end
+  if (stringEnded)
   {
-    setMotor(i, speed);
+    // debug
+    Serial.println("Received String: " + stringBuilder);
+
+    // reset builder and flag
+    stringBuilder = "";
+    stringEnded = false;
   }
 }
 
 void setMotor(int motor, int speed)
 {
-  if(motor == -1){
+  if (motor == -1)
+  {
     return;
   }
 
@@ -75,7 +87,8 @@ void setMotor(int motor, int speed)
   // speed set
   if (abs(speed) > minSpeed)
   {
-    if(abs(speed) <= 255){
+    if (abs(speed) <= 255)
+    {
       analogWrite(pwmPin, abs(speed)); // from minSpeed-255
     }
   }

@@ -29,7 +29,7 @@ class device:
 
     def sendMessage(self, message):
         if not self.debugMode:
-            self.serial.write(message.encode())
+            self.serial.write((message + "\n").encode())
         else:
             # parse speeds
             front = int(message[0:4].lstrip("0").replace("N", "-") + "0") / 10
