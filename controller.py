@@ -1,6 +1,6 @@
 import pygame
 import time
-import serial
+import serial #pip install pyserial
 
 # inputs
 leftStick = (0, 0)
@@ -164,7 +164,7 @@ right trigger:  +front +back = go up
 ps4Controller = controller()
 
 # initialize arduino
-arduino = device("/dev/ttyACM0")
+arduino = device()
 
 printClock = time.time()
 updateInterval = 0.1  # in seconds
