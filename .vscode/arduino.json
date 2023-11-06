@@ -1,5 +1,0 @@
-{
-    "board": "arduino:avr:uno",
-    "sketch": "Seaperch.ino",
-    "port": "/dev/ttyS30"
-}
