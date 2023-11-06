@@ -44,19 +44,7 @@ class device:
         if not self.debugMode:
             self.serial.write((message + "\n").encode())
         else:
-            # parse speeds
-            front = int(message[0:4].lstrip("0").replace("N", "-") + "0") / 10
-            back = int(message[4:8].lstrip("0").replace("N", "-") + "0") / 10
-            left = int(message[8:12].lstrip("0").replace("N", "-") + "0") / 10
-            right = int(message[12:16].lstrip("0").replace("N", "-") + "0") / 10
-
-            # debug
-            clear_terminal()
-            print(f"Message: {message}")
-            print(f"Front: {front}")
-            print(f"Back: {back}")
-            print(f"Left: {left}")
-            print(f"Right: {right}")
+            debug()
 
     def close(self):
         if not self.debugMode:
@@ -262,8 +250,7 @@ while True:
         ps4Controller.possibleEvent(event)
     if time.time() - printClock >= updateInterval:
         translateInputs()
-        debug()
-        # syncMotors()
+        syncMotors()
         printClock = time.time()
 
 arduino.close()
