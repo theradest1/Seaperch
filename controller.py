@@ -3,21 +3,13 @@ import time
 import serial  # pip install pyserial
 import os
 
-# inputs
-leftStick = (0, 0)
-rightStick = (0, 0)
-leftTrigger = 0
-rightTrigger = 0
-
 # outputs
 frontMotor = 0  # facing up: 1
 backMotor = 0  # facing up: 2
 leftMotor = 0  # facing forward: 3
 rightMotor = 0  # facing forward: 4
 
-controller = ""  # for normalizing
-
-updateInterval = 0.1  # in seconds - how fast the arduino motors get synced
+updateInterval = 0.05  # in seconds - how fast the arduino motors get synced
 
 ports = ["COM4", "/dev/ttyACM0"]
 
@@ -55,6 +47,11 @@ class device:
 
 class controller:
     def __init__(self):
+        self.leftStick = (0, 0)
+        self.rightStick = (0, 0)
+        self.leftTrigger = 0
+        self.rightTrigger = 0
+
         print("\nConnecting to controller...")
         # initialize pygame
         pygame.init()
@@ -100,61 +97,59 @@ class controller:
                 self.setAxis(event.axis, event.value)
 
     def setAxis(self, axis, value):
-        global leftStick, rightStick, leftTrigger, rightTrigger
-
         if self.name == "Controller (dualSense)":  # use official name later (and test)
             if axis == 0:  # left stick X
-                leftStick = (value, leftStick[1])
+                self.leftStick = (value, self.leftStick[1])
             elif axis == 1:  # left stick Y
-                leftStick = (leftStick[0], -value)
+                self.leftStick = (self.leftStick[0], -value)
             elif axis == 2:  # left trigger
-                leftTrigger = (value + 1) / 2
+                self.leftTrigger = (value + 1) / 2
             elif axis == 3:  # right stick X
-                rightStick = (value, rightStick[1])
+                self.rightStick = (value, self.rightStick[1])
             elif axis == 4:  # right stick Y
-                rightStick = (rightStick[0], -value)
+                self.rightStick = (self.rightStick[0], -value)
             elif axis == 5:  # right trigger
-                rightTrigger = (value + 1) / 2
+                self.rightTrigger = (value + 1) / 2
             return
         elif self.name == "Controller (Gamepad F310)":
             if axis == 0:  # left stick X
-                leftStick = (value, leftStick[1])
+                self.leftStick = (value, self.leftStick[1])
             elif axis == 1:  # left stick Y
-                leftStick = (leftStick[0], -value)
+                self.leftStick = (self.leftStick[0], -value)
             elif axis == 2:  # right stick X
-                rightStick = (value, rightStick[1])
+                self.rightStick = (value, self.rightStick[1])
             elif axis == 3:  # right stick Y
-                rightStick = (rightStick[0], -value)
+                self.rightStick = (self.rightStick[0], -value)
             elif axis == 4:  # left trigger
-                leftTrigger = (value + 1) / 2
+                self.leftTrigger = (value + 1) / 2
             elif axis == 5:  # right trigger
-                rightTrigger = (value + 1) / 2
+                self.rightTrigger = (value + 1) / 2
             return
         elif self.name == "keyboard":
             # left stick
             if axis == pygame.K_w:
-                leftStick = (leftStick[0], value)
+                self.leftStick = (self.leftStick[0], value)
             elif axis == pygame.K_a:
-                leftStick = (-value, leftStick[1])
+                self.leftStick = (-value, self.leftStick[1])
             elif axis == pygame.K_s:
-                leftStick = (leftStick[0], -value)
+                self.leftStick = (self.leftStick[0], -value)
             elif axis == pygame.K_d:
-                leftStick = (value, leftStick[1])
+                self.leftStick = (value, self.leftStick[1])
             # right stick
             elif axis == pygame.K_i:
-                rightStick = (rightStick[0], value)
+                self.rightStick = (self.rightStick[0], value)
             elif axis == pygame.K_j:
-                rightStick = (-value, rightStick[1])
+                self.rightStick = (-value, self.rightStick[1])
             elif axis == pygame.K_k:
-                rightStick = (rightStick[0], -value)
+                self.rightStick = (self.rightStick[0], -value)
             elif axis == pygame.K_l:
-                rightStick = (value, rightStick[1])
+                self.rightStick = (value, self.rightStick[1])
 
             # triggers
             elif axis == pygame.K_n:
-                rightTrigger = value
+                self.rightTrigger = value
             elif axis == pygame.K_c:
-                leftTrigger = value
+                self.leftTrigger = value
             return
 
         print("!!!! NO CONTROLLER SCHEME MADE FOR " + self.name + " !!!!")
@@ -163,15 +158,19 @@ class controller:
 
 
 def debug():
-    global leftStick, rightStick, leftTrigger, rightTrigger
+    global activeController
     global frontMotor, backMotor, leftMotor, rightMotor
     # inputs
     clearTerminal()
     print("Inputs:")
-    print(f"Left Joystick: ({leftStick[0]:.{3}f},{leftStick[1]:.{3}f})")
-    print(f"Right Joystick: ({rightStick[0]:.{3}f},{rightStick[1]:.{3}f})")
-    print(f"Right Trigger: {rightTrigger:.{3}f}")
-    print(f"Left Trigger: {leftTrigger:.{3}f}")
+    print(
+        f"Left Joystick: ({activeController.leftStick[0]:.{3}f},{activeController.leftStick[1]:.{3}f})"
+    )
+    print(
+        f"Right Joystick: ({activeController.rightStick[0]:.{3}f},{activeController.rightStick[1]:.{3}f})"
+    )
+    print(f"Right Trigger: {activeController.rightTrigger:.{3}f}")
+    print(f"Left Trigger: {activeController.leftTrigger:.{3}f}")
 
     # outputs
     print("\nMotors:")
@@ -206,33 +205,33 @@ def syncMotors():
 
 
 def translateInputs():
-    global leftStick, rightStick, leftTrigger, rightTrigger
+    global activeController
     global frontMotor, backMotor, leftMotor, rightMotor
 
     # reset motor speeds
     frontMotor = backMotor = leftMotor = rightMotor = 0
 
     # left stick x
-    rightMotor -= leftStick[0]
-    leftMotor += leftStick[0]
+    rightMotor -= activeController.leftStick[0]
+    leftMotor += activeController.leftStick[0]
 
     # left stick y
-    rightMotor += leftStick[1]
-    leftMotor += leftStick[1]
+    rightMotor += activeController.leftStick[1]
+    leftMotor += activeController.leftStick[1]
 
     # right stick x
 
     # right stick y
-    frontMotor -= rightStick[1]
-    backMotor += rightStick[1]
+    frontMotor -= activeController.rightStick[1]
+    backMotor += activeController.rightStick[1]
 
     # left trigger
-    frontMotor -= leftTrigger
-    backMotor -= leftTrigger
+    frontMotor -= activeController.leftTrigger
+    backMotor -= activeController.leftTrigger
 
     # right trigger
-    frontMotor += rightTrigger
-    backMotor += rightTrigger
+    frontMotor += activeController.rightTrigger
+    backMotor += activeController.rightTrigger
 
 
 # inputs -> outputs
@@ -256,7 +255,7 @@ clearTerminal()
 arduino = device()
 
 # initialize controller
-ps4Controller = controller()
+activeController = controller()
 
 printClock = time.time()
 while True:
@@ -264,12 +263,12 @@ while True:
     for event in events:
         if event.type == pygame.QUIT:
             exit()
-        ps4Controller.possibleEvent(event)
+        activeController.possibleEvent(event)
     if time.time() - printClock >= updateInterval:
         translateInputs()
         syncMotors()
         printClock = time.time()
 
 arduino.close()
-ps4Controller.close()
+activeController.close()
 pygame.quit()
