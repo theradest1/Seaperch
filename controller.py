@@ -3,6 +3,10 @@ import time
 import serial  # pip install pyserial
 import os
 
+pygame.init()
+screen = pygame.display.set_mode((400, 100))
+pygame.display.set_caption("Click here for keyboard controls")
+
 # inputs
 leftStick = (0, 0)
 rightStick = (0, 0)
@@ -68,8 +72,10 @@ class controller:
 
         # if no controller active
         if controller_count == 0:
-            print("No controllers found.")
-            exit()
+            print("No controllers found - defaulting to keyboard")
+            self.name = "keyboard"
+            time.sleep(1)
+            return
 
         # initialize controller
         self.controller = pygame.joystick.Joystick(0)
@@ -80,6 +86,14 @@ class controller:
 
     def close(self):
         self.controller.quit()
+
+    def possibleEvent(self, event):
+        if event.type == pygame.JOYAXISMOTION:
+            self.setAxis(event.axis, event.value)
+        elif event.type == pygame.KEYDOWN and self.name == "keyboard":
+            self.setAxis(event.key, 1)
+        elif event.type == pygame.KEYUP and self.name == "keyboard":
+            self.setAxis(event.key, 0)
 
     def setAxis(self, axis, value):
         global leftStick, rightStick, leftTrigger, rightTrigger
@@ -112,8 +126,34 @@ class controller:
             elif axis == 5:  # right trigger
                 rightTrigger = (value + 1) / 2
             return
+        elif self.name == "keyboard":
+            # left stick
+            if axis == pygame.K_w:
+                leftStick = (leftStick[0], value)
+            elif axis == pygame.K_a:
+                leftStick = (-value, leftStick[1])
+            elif axis == pygame.K_s:
+                leftStick = (leftStick[0], -value)
+            elif axis == pygame.K_d:
+                leftStick = (value, leftStick[1])
+            # right stick
+            elif axis == pygame.K_i:
+                rightStick = (rightStick[0], value)
+            elif axis == pygame.K_j:
+                rightStick = (-value, rightStick[1])
+            elif axis == pygame.K_k:
+                rightStick = (rightStick[0], -value)
+            elif axis == pygame.K_l:
+                rightStick = (value, rightStick[1])
 
-        print("NO CONTROLLER SCEME MADE FOR " + self.name)
+            # triggers
+            elif axis == pygame.K_n:
+                rightTrigger = value
+            elif axis == pygame.K_c:
+                leftTrigger = value
+            return
+
+        print("NO CONTROLLER SCHEME MADE FOR " + self.name)
         time.sleep(0.5)
         return
 
@@ -214,19 +254,17 @@ ps4Controller = controller()
 arduino = device(arduinoPort)
 
 printClock = time.time()
-try:
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.JOYAXISMOTION:
-                ps4Controller.setAxis(event.axis, event.value)
-        if time.time() - printClock >= updateInterval:
-            translateInputs()
-            # debug()
-            syncMotors()
-            printClock = time.time()
-
-except KeyboardInterrupt:
-    pass
+while True:
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.QUIT:
+            exit()
+        ps4Controller.possibleEvent(event)
+    if time.time() - printClock >= updateInterval:
+        translateInputs()
+        debug()
+        # syncMotors()
+        printClock = time.time()
 
 arduino.close()
 ps4Controller.close()
