@@ -3,12 +3,6 @@ import time
 import serial  # pip install pyserial
 import os
 
-# outputs
-frontMotor = 0  # facing up: 1
-backMotor = 0  # facing up: 2
-leftMotor = 0  # facing forward: 3
-rightMotor = 0  # facing forward: 4
-
 updateInterval = 0.05  # in seconds - how fast the arduino motors get synced
 
 ports = ["COM4", "/dev/ttyACM0"]
@@ -18,9 +12,15 @@ def clearTerminal():
     os.system("cls" if os.name == "nt" else "clear")
 
 
-class device:
+class motorController:
     def __init__(self, baud=9600):
         global ports
+
+        self.frontMotor = 0  # facing up: 1
+        self.backMotor = 0  # facing up: 2
+        self.leftMotor = 0  # facing forward: 3
+        self.rightMotor = 0  # facing forward: 4
+
         print("\nConnecting to arduino...")
         for port in ports:
             try:
@@ -43,6 +43,12 @@ class device:
     def close(self):
         if not self.debugMode:
             self.serial.close()
+
+    def syncMotors(self):
+        message = floatsToSpeeds(
+            self.frontMotor, self.backMotor, self.leftMotor, self.rightMotor
+        )
+        self.sendMessage(message)
 
 
 class controller:
@@ -159,7 +165,7 @@ class controller:
 
 def debug():
     global activeController
-    global frontMotor, backMotor, leftMotor, rightMotor
+    global arduino
     # inputs
     clearTerminal()
     print("Inputs:")
@@ -174,10 +180,14 @@ def debug():
 
     # outputs
     print("\nMotors:")
-    print(f"Front: {frontMotor:.{3}f}")
-    print(f"Back: {backMotor:.{3}f}")
-    print(f"Left: {leftMotor:.{3}f}")
-    print(f"Right: {rightMotor:.{3}f}")
+    print(f"Front: {floatToSpeed(arduino.frontMotor)}")
+    print(f"Back: {floatToSpeed(arduino.backMotor)}")
+    print(f"Left: {floatToSpeed(arduino.leftMotor)}")
+    print(f"Right: {floatToSpeed(arduino.rightMotor)}")
+
+
+def floatToSpeed(arg):
+    return f"{max(min(arg, 1), -1):.{3}f}"
 
 
 def floatsToSpeeds(*args):
@@ -195,43 +205,31 @@ def floatsToSpeeds(*args):
     return speeds
 
 
-def syncMotors():
-    global frontMotor, backMotor, leftMotor, rightMotor
-    global arduino
-    message = floatsToSpeeds(frontMotor, backMotor, leftMotor, rightMotor)
-
-    # print(message)
-    arduino.sendMessage(message)
-
-
-def translateInputs():
-    global activeController
-    global frontMotor, backMotor, leftMotor, rightMotor
-
+def translateInputs(activeController, arduino):
     # reset motor speeds
-    frontMotor = backMotor = leftMotor = rightMotor = 0
+    arduino.frontMotor = arduino.backMotor = arduino.leftMotor = arduino.rightMotor = 0
 
     # left stick x
-    rightMotor -= activeController.leftStick[0]
-    leftMotor += activeController.leftStick[0]
+    arduino.rightMotor -= activeController.leftStick[0]
+    arduino.leftMotor += activeController.leftStick[0]
 
     # left stick y
-    rightMotor += activeController.leftStick[1]
-    leftMotor += activeController.leftStick[1]
+    arduino.rightMotor += activeController.leftStick[1]
+    arduino.leftMotor += activeController.leftStick[1]
 
     # right stick x
 
     # right stick y
-    frontMotor -= activeController.rightStick[1]
-    backMotor += activeController.rightStick[1]
+    arduino.frontMotor -= activeController.rightStick[1]
+    arduino.backMotor += activeController.rightStick[1]
 
     # left trigger
-    frontMotor -= activeController.leftTrigger
-    backMotor -= activeController.leftTrigger
+    arduino.frontMotor -= activeController.leftTrigger
+    arduino.backMotor -= activeController.leftTrigger
 
     # right trigger
-    frontMotor += activeController.rightTrigger
-    backMotor += activeController.rightTrigger
+    arduino.frontMotor += activeController.rightTrigger
+    arduino.backMotor += activeController.rightTrigger
 
 
 # inputs -> outputs
@@ -252,7 +250,7 @@ right trigger:  +front +back = go up
 clearTerminal()
 
 # initialize arduino
-arduino = device()
+arduino = motorController()
 
 # initialize controller
 activeController = controller()
@@ -265,8 +263,8 @@ while True:
             exit()
         activeController.possibleEvent(event)
     if time.time() - printClock >= updateInterval:
-        translateInputs()
-        syncMotors()
+        translateInputs(activeController, arduino)
+        arduino.syncMotors()
         printClock = time.time()
 
 arduino.close()
