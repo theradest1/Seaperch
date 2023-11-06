@@ -3,10 +3,6 @@ import time
 import serial  # pip install pyserial
 import os
 
-pygame.init()
-screen = pygame.display.set_mode((400, 100))
-pygame.display.set_caption("Click here for keyboard controls")
-
 # inputs
 leftStick = (0, 0)
 rightStick = (0, 0)
@@ -19,9 +15,11 @@ backMotor = 0  # facing up: 2
 leftMotor = 0  # facing forward: 3
 rightMotor = 0  # facing forward: 4
 
-arduinoPort = "COM4"  # "/dev/ttyACM0"  #
 controller = ""  # for normalizing
-updateInterval = 0.1  # in seconds
+
+updateInterval = 0.1  # in seconds - how fast the arduino motors get synced
+
+ports = ["COM4", "/dev/ttyACM0"]
 
 
 def clear_terminal():
@@ -29,16 +27,20 @@ def clear_terminal():
 
 
 class device:
-    def __init__(self, port, baud=9600):
-        try:
-            self.serial = serial.Serial(port, baud)
-            print(f"Connected to arduino on port {port} with baud of {baud}")
-            time.sleep(1)
-            self.debugMode = False
-        except:
-            print("!!!!Couldn't connect to device, running in debug mode!!!!")
-            time.sleep(3)
-            self.debugMode = True
+    def __init__(self, baud=9600):
+        global ports
+        for port in ports:
+            try:
+                self.serial = serial.Serial(port, baud)
+                print(f"Connected to arduino on port {port} with baud of {baud}")
+                time.sleep(1)
+                self.debugMode = False
+                return
+            except:
+                pass
+        print("!!!!Couldn't connect to arduino, running in debug mode!!!!")
+        time.sleep(2)
+        self.debugMode = True
 
     def sendMessage(self, message):
         if not self.debugMode:
@@ -60,9 +62,14 @@ class controller:
 
         # if no controller active
         if controller_count == 0:
-            print("No controllers found - defaulting to keyboard")
+            print("!!!!No controllers found, defaulting to keyboard!!!!")
             self.name = "keyboard"
-            time.sleep(1)
+            time.sleep(2)
+
+            # create a screen so keyboard can be used
+            pygame.init()
+            screen = pygame.display.set_mode((400, 100))
+            pygame.display.set_caption("Click here for keyboard controls")
             return
 
         # initialize controller
@@ -76,12 +83,14 @@ class controller:
         self.controller.quit()
 
     def possibleEvent(self, event):
-        if event.type == pygame.JOYAXISMOTION:
-            self.setAxis(event.axis, event.value)
-        elif event.type == pygame.KEYDOWN and self.name == "keyboard":
-            self.setAxis(event.key, 1)
-        elif event.type == pygame.KEYUP and self.name == "keyboard":
-            self.setAxis(event.key, 0)
+        if self.name == "keyboard":
+            if event.type == pygame.KEYDOWN:
+                self.setAxis(event.key, 1)
+            elif event.type == pygame.KEYUP:
+                self.setAxis(event.key, 0)
+        else:
+            if event.type == pygame.JOYAXISMOTION:
+                self.setAxis(event.axis, event.value)
 
     def setAxis(self, axis, value):
         global leftStick, rightStick, leftTrigger, rightTrigger
@@ -239,7 +248,7 @@ right trigger:  +front +back = go up
 ps4Controller = controller()
 
 # initialize arduino
-arduino = device(arduinoPort)
+arduino = device()
 
 printClock = time.time()
 while True:
