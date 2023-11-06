@@ -15,7 +15,7 @@ backMotor = 0  # facing up: 2
 leftMotor = 0  # facing forward: 3
 rightMotor = 0  # facing forward: 4
 
-arduinoPort = "/dev/ttyACM0"  # "COM4"
+arduinoPort = "COM4"  # "/dev/ttyACM0"  #
 controller = ""  # for normalizing
 updateInterval = 0.1  # in seconds
 
@@ -84,7 +84,7 @@ class controller:
     def setAxis(self, axis, value):
         global leftStick, rightStick, leftTrigger, rightTrigger
 
-        if self.name == "Controller (dualSense)":  # use official name later
+        if self.name == "Controller (dualSense)":  # use official name later (and test)
             if axis == 0:  # left stick X
                 leftStick = (value, leftStick[1])
             elif axis == 1:  # left stick Y
@@ -221,8 +221,8 @@ try:
                 ps4Controller.setAxis(event.axis, event.value)
         if time.time() - printClock >= updateInterval:
             translateInputs()
-            debug()
-            # syncMotors()
+            # debug()
+            syncMotors()
             printClock = time.time()
 
 except KeyboardInterrupt:

@@ -9,7 +9,7 @@ int pinPWMs[] = {3, 5, 6, 9}; // pin1, pin2, pwm pin
 // motor 4 = right
 
 int motors = 4;
-int minSpeed = 80; // so they dont stall and burn out
+int minSpeed = 60; // so they dont stall and burn out
 
 bool stringEnded = false;
 char stringDelimiter = '\n';
