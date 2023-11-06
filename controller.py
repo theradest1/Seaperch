@@ -1,6 +1,7 @@
-import pygame
+import pygame  # pip install pygame
 import time
 import serial  # pip install pyserial
+import os
 
 # inputs
 leftStick = (0, 0)
@@ -15,7 +16,12 @@ leftMotor = 0  # facing forward: 3
 rightMotor = 0  # facing forward: 4
 
 arduinoPort = "/dev/ttyACM0"  # "COM4"
-updateInterval = 0.05  # in seconds
+controller = ""  # for normalizing
+updateInterval = 0.1  # in seconds
+
+
+def clear_terminal():
+    os.system("cls" if os.name == "nt" else "clear")
 
 
 class device:
@@ -41,7 +47,7 @@ class device:
             right = int(message[12:16].lstrip("0").replace("N", "-") + "0") / 10
 
             # debug
-            print("\n\n\n\n\n\n\n\n")
+            clear_terminal()
             print(f"Message: {message}")
             print(f"Front: {front}")
             print(f"Back: {back}")
@@ -68,18 +74,56 @@ class controller:
         # initialize controller
         self.controller = pygame.joystick.Joystick(0)
         self.controller.init()
-        print(f"Connected to controller: {self.controller.get_name()}")
+        self.name = str(self.controller.get_name())
+        print(f"Connected to controller: {self.name}")
         time.sleep(1)
 
     def close(self):
         self.controller.quit()
+
+    def setAxis(self, axis, value):
+        global leftStick, rightStick, leftTrigger, rightTrigger
+
+        if self.name == "Controller (dualSense)":  # use official name later
+            if axis == 0:  # left stick X
+                leftStick = (value, leftStick[1])
+            elif axis == 1:  # left stick Y
+                leftStick = (leftStick[0], -value)
+            elif axis == 2:  # left trigger
+                leftTrigger = (value + 1) / 2
+            elif axis == 3:  # right stick X
+                rightStick = (value, rightStick[1])
+            elif axis == 4:  # right stick Y
+                rightStick = (rightStick[0], -value)
+            elif axis == 5:  # right trigger
+                rightTrigger = (value + 1) / 2
+            return
+        elif self.name == "Controller (Gamepad F310)":
+            if axis == 0:  # left stick X
+                leftStick = (value, leftStick[1])
+            elif axis == 1:  # left stick Y
+                leftStick = (leftStick[0], -value)
+            elif axis == 2:  # right stick X
+                rightStick = (value, rightStick[1])
+            elif axis == 3:  # right stick Y
+                rightStick = (rightStick[0], -value)
+            elif axis == 4:  # left trigger
+                leftTrigger = (value + 1) / 2
+            elif axis == 5:  # right trigger
+                rightTrigger = (value + 1) / 2
+            return
+
+        print("NO CONTROLLER SCEME MADE FOR " + self.name)
+        time.sleep(0.5)
+        return
 
 
 def debug():
     global leftStick, rightStick, leftTrigger, rightTrigger
     global frontMotor, backMotor, leftMotor, rightMotor
     # inputs
-    print("\n\n\n\n\n\n\n\n\nInputs:")
+    clear_terminal()
+    print("Inputs:")
     print(f"Left Joystick: ({leftStick[0]:.{3}f},{leftStick[1]:.{3}f})")
     print(f"Right Joystick: ({rightStick[0]:.{3}f},{rightStick[1]:.{3}f})")
     print(f"Right Trigger: {rightTrigger:.{3}f}")
@@ -174,22 +218,11 @@ try:
     while True:
         for event in pygame.event.get():
             if event.type == pygame.JOYAXISMOTION:
-                if event.axis == 0:  # left stick X
-                    leftStick = (event.value, leftStick[1])
-                elif event.axis == 1:  # left stick Y
-                    leftStick = (leftStick[0], -event.value)
-                elif event.axis == 2:  # left trigger
-                    leftTrigger = (event.value + 1) / 2
-                elif event.axis == 3:  # right stick X
-                    rightStick = (event.value, rightStick[1])
-                elif event.axis == 4:  # right stick Y
-                    rightStick = (rightStick[0], -event.value)
-                elif event.axis == 5:  # right trigger
-                    rightTrigger = (event.value + 1) / 2
+                ps4Controller.setAxis(event.axis, event.value)
         if time.time() - printClock >= updateInterval:
             translateInputs()
-            syncMotors()
-            # debug()
+            debug()
+            # syncMotors()
             printClock = time.time()
 
 except KeyboardInterrupt:
