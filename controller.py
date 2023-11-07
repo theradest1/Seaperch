@@ -5,35 +5,44 @@ import os
 
 updateInterval = 0.05  # in seconds - how fast the arduino motors get synced
 
-ports = ["COM4", "/dev/ttyACM0"]
+ports = [
+    "COM4",
+    "/dev/ttyACM0",
+]
 
 
 def clearTerminal():
     os.system("cls" if os.name == "nt" else "clear")
 
 
+def findArduinoPort(baud):
+    global ports
+    for port in ports:
+        try:
+            testedPort = serial.Serial(port, baud)
+            return testedPort
+        except:
+            pass
+    return "none"
+
+
 class motorController:
     def __init__(self, baud=9600):
-        global ports
-
         self.frontMotor = 0  # facing up: 1
         self.backMotor = 0  # facing up: 2
         self.leftMotor = 0  # facing forward: 3
         self.rightMotor = 0  # facing forward: 4
 
         print("\nConnecting to arduino...")
-        for port in ports:
-            try:
-                self.serial = serial.Serial(port, baud)
-                print(f"Connected to arduino on port {port} with baud of {baud}")
-                time.sleep(1)
-                self.debugMode = False
-                return
-            except:
-                pass
-        print("!!!! Couldn't connect to arduino, running in debug mode !!!!")
-        time.sleep(2)
-        self.debugMode = True
+        self.serial = findArduinoPort(baud)
+        if self.serial != "none":
+            print(f"Connected to arduino")
+            time.sleep(1)
+            self.debugMode = False
+        else:
+            print("!!!! Couldn't connect to arduino, running in debug mode !!!!")
+            time.sleep(2)
+            self.debugMode = True
 
     def sendMessage(self, message):
         if not self.debugMode:
@@ -117,16 +126,16 @@ class controller:
             elif axis == 5:  # right trigger
                 self.rightTrigger = (value + 1) / 2
             return
-        elif self.name == "Controller (Gamepad F310)":
+        elif self.name == "Logitech Gamepad F310":
             if axis == 0:  # left stick X
                 self.leftStick = (value, self.leftStick[1])
             elif axis == 1:  # left stick Y
                 self.leftStick = (self.leftStick[0], -value)
-            elif axis == 2:  # right stick X
+            elif axis == 3:  # right stick X
                 self.rightStick = (value, self.rightStick[1])
-            elif axis == 3:  # right stick Y
+            elif axis == 4:  # right stick Y
                 self.rightStick = (self.rightStick[0], -value)
-            elif axis == 4:  # left trigger
+            elif axis == 2:  # left trigger
                 self.leftTrigger = (value + 1) / 2
             elif axis == 5:  # right trigger
                 self.rightTrigger = (value + 1) / 2
