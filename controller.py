@@ -6,8 +6,8 @@ import os
 updateInterval = 0.05  # in seconds - how fast the arduino motors get synced
 
 ports = [
-    "COM4",
     "/dev/ttyACM0",
+    "COM4",
 ]
 
 
@@ -28,8 +28,8 @@ def findArduinoPort(baud):
 
 class motorController:
     def __init__(self, baud=9600):
-        self.frontMotor = 0  # facing up: 1
-        self.backMotor = 0  # facing up: 2
+        self.topMotor = 0  # facing up: 1
+        self.bottomMotor = 0  # facing up: 2
         self.leftMotor = 0  # facing forward: 3
         self.rightMotor = 0  # facing forward: 4
 
@@ -55,7 +55,7 @@ class motorController:
 
     def syncMotors(self):
         message = floatsToSpeeds(
-            self.frontMotor, self.backMotor, self.leftMotor, self.rightMotor
+            self.topMotor, self.bottomMotor, self.leftMotor, self.rightMotor
         )
         self.sendMessage(message)
 
@@ -189,8 +189,8 @@ def debug():
 
     # outputs
     print("\nMotors:")
-    print(f"Front: {floatToSpeed(arduino.frontMotor)}")
-    print(f"Back: {floatToSpeed(arduino.backMotor)}")
+    print(f"Front: {floatToSpeed(arduino.topMotor)}")
+    print(f"Back: {floatToSpeed(arduino.bottomMotor)}")
     print(f"Left: {floatToSpeed(arduino.leftMotor)}")
     print(f"Right: {floatToSpeed(arduino.rightMotor)}")
 
@@ -216,7 +216,7 @@ def floatsToSpeeds(*args):
 
 def translateInputs(activeController, arduino):
     # reset motor speeds
-    arduino.frontMotor = arduino.backMotor = arduino.leftMotor = arduino.rightMotor = 0
+    arduino.topMotor = arduino.bottomMotor = arduino.leftMotor = arduino.rightMotor = 0
 
     # left stick x
     arduino.rightMotor -= activeController.leftStick[0]
@@ -229,16 +229,16 @@ def translateInputs(activeController, arduino):
     # right stick x
 
     # right stick y
-    arduino.frontMotor -= activeController.rightStick[1]
-    arduino.backMotor += activeController.rightStick[1]
+    arduino.topMotor -= activeController.rightStick[1]
+    arduino.bottomMotor += activeController.rightStick[1]
 
     # left trigger
-    arduino.frontMotor -= activeController.leftTrigger
-    arduino.backMotor -= activeController.leftTrigger
+    arduino.topMotor -= activeController.leftTrigger
+    arduino.bottomMotor -= activeController.leftTrigger
 
     # right trigger
-    arduino.frontMotor += activeController.rightTrigger
-    arduino.backMotor += activeController.rightTrigger
+    arduino.topMotor += activeController.rightTrigger
+    arduino.bottomMotor += activeController.rightTrigger
 
 
 # inputs -> outputs
