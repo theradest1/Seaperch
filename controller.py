@@ -28,10 +28,10 @@ def findArduinoPort(baud):
 
 class motorController:
     def __init__(self, baud=9600):
-        self.topMotor = 0  # facing up: 1
-        self.bottomMotor = 0  # facing up: 2
-        self.leftMotor = 0  # facing forward: 3
-        self.rightMotor = 0  # facing forward: 4
+        self.bottomLeftMotor = 0  # facing up: 1
+        self.bottomRightMotor = 0  # facing up: 2
+        self.topLeftMotor = 0  # facing forward: 3
+        self.topRightMotor = 0  # facing forward: 4
 
         print("\nConnecting to arduino...")
         self.serial = findArduinoPort(baud)
@@ -55,7 +55,10 @@ class motorController:
 
     def syncMotors(self):
         message = floatsToSpeeds(
-            self.topMotor, self.bottomMotor, self.leftMotor, self.rightMotor
+            self.bottomLeftMotor,
+            self.bottomRightMotor,
+            self.topLeftMotor,
+            self.topRightMotor,
         )
         self.sendMessage(message)
 
@@ -189,10 +192,10 @@ def debug():
 
     # outputs
     print("\nMotors:")
-    print(f"Front: {floatToSpeed(arduino.topMotor)}")
-    print(f"Back: {floatToSpeed(arduino.bottomMotor)}")
-    print(f"Left: {floatToSpeed(arduino.leftMotor)}")
-    print(f"Right: {floatToSpeed(arduino.rightMotor)}")
+    print(f"Top Left: {floatToSpeed(arduino.topLeftMotor)}")
+    print(f"Top right: {floatToSpeed(arduino.topRightMotor)}")
+    print(f"Bottom left: {floatToSpeed(arduino.bottomLeftMotor)}")
+    print(f"Bottom right: {floatToSpeed(arduino.bottomRightMotor)}")
 
 
 def floatToSpeed(arg):
@@ -216,31 +219,38 @@ def floatsToSpeeds(*args):
 
 def translateInputs(activeController, arduino):
     # reset motor speeds
-    arduino.topMotor = arduino.bottomMotor = arduino.leftMotor = arduino.rightMotor = 0
+    arduino.bottomLeftMotor = 0
+    arduino.bottomRightMotor = 0
+    arduino.topLeftMotor = 0
+    arduino.topRightMotor = 0
 
-    # left stick x
-    arduino.rightMotor -= activeController.leftStick[0]
-    arduino.leftMotor += activeController.leftStick[0]
+    # left stick x - roll (none yet)
 
-    # left stick y
-    arduino.rightMotor += activeController.leftStick[1]
-    arduino.leftMotor += activeController.leftStick[1]
-    arduino.topMotor += activeController.leftStick[1]
-    arduino.bottomMotor += activeController.leftStick[1]
+    # left stick y - none
 
-    # right stick x
+    # right stick x - yaw
+    arduino.topRightMotor -= activeController.rightStick[0]
+    arduino.topLeftMotor += activeController.rightStick[0]
+    arduino.bottomLeftMotor += activeController.rightStick[0]
+    arduino.bottomRightMotor -= activeController.rightStick[0]
 
-    # right stick y
-    arduino.topMotor += activeController.rightStick[1]
-    arduino.bottomMotor -= activeController.rightStick[1]
+    # right stick y - pitch
+    arduino.topRightMotor += activeController.rightStick[1]
+    arduino.topLeftMotor += activeController.rightStick[1]
+    arduino.bottomLeftMotor -= activeController.rightStick[1]
+    arduino.bottomRightMotor -= activeController.rightStick[1]
 
-    # left trigger
-    arduino.topMotor -= activeController.leftTrigger
-    arduino.bottomMotor -= activeController.leftTrigger
+    # left trigger - backwards
+    arduino.topRightMotor -= activeController.leftTrigger
+    arduino.topLeftMotor -= activeController.leftTrigger
+    arduino.bottomLeftMotor -= activeController.leftTrigger
+    arduino.bottomRightMotor -= activeController.leftTrigger
 
-    # right trigger
-    arduino.topMotor += activeController.rightTrigger
-    arduino.bottomMotor += activeController.rightTrigger
+    # right trigger - forwards
+    arduino.topRightMotor += activeController.rightTrigger
+    arduino.topLeftMotor += activeController.rightTrigger
+    arduino.bottomLeftMotor += activeController.rightTrigger
+    arduino.bottomRightMotor += activeController.rightTrigger
 
 
 # inputs -> outputs
