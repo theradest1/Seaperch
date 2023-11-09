@@ -225,12 +225,14 @@ def translateInputs(activeController, arduino):
     # left stick y
     arduino.rightMotor += activeController.leftStick[1]
     arduino.leftMotor += activeController.leftStick[1]
+    arduino.topMotor += activeController.leftStick[1]
+    arduino.bottomMotor += activeController.leftStick[1]
 
     # right stick x
 
     # right stick y
-    arduino.topMotor -= activeController.rightStick[1]
-    arduino.bottomMotor += activeController.rightStick[1]
+    arduino.topMotor += activeController.rightStick[1]
+    arduino.bottomMotor -= activeController.rightStick[1]
 
     # left trigger
     arduino.topMotor -= activeController.leftTrigger
