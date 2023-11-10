@@ -115,16 +115,16 @@ class controller:
                 self.setAxis(event.axis, event.value)
 
     def setAxis(self, axis, value):
-        if self.name == "Controller (dualSense)":  # use official name later (and test)
+        if self.name == "PS4 Controller":  # use official name later (and test)
             if axis == 0:  # left stick X
                 self.leftStick = (value, self.leftStick[1])
             elif axis == 1:  # left stick Y
                 self.leftStick = (self.leftStick[0], -value)
-            elif axis == 2:  # left trigger
+            elif axis == 4:  # left trigger
                 self.leftTrigger = (value + 1) / 2
-            elif axis == 3:  # right stick X
+            elif axis == 2:  # right stick X
                 self.rightStick = (value, self.rightStick[1])
-            elif axis == 4:  # right stick Y
+            elif axis == 3:  # right stick Y
                 self.rightStick = (self.rightStick[0], -value)
             elif axis == 5:  # right trigger
                 self.rightTrigger = (value + 1) / 2
@@ -178,6 +178,7 @@ class controller:
 def debug():
     global activeController
     global arduino
+
     # inputs
     clearTerminal()
     print("Inputs:")
