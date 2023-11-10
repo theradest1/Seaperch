@@ -237,10 +237,7 @@ def floatsToSpeeds(*args):
     speeds = ""
 
     for arg in args:
-        arg *= 255
-
-        # clamp -255 to 255
-        arg = max(min(arg, 255), -255)
+        floatToSpeed(arg, False)
 
         # round and format to be 4 characters
         speeds += str(int(arg)).replace("-", "N").zfill(4)
