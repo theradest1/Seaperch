@@ -7,6 +7,7 @@ updateInterval = 0.05  # in seconds - how fast the arduino motors get synced
 deadzone = 0.15  # the min joystick value for it to be percieved
 minMotorPercent = 0.25  # the minimum speed percent for the motors to spin
 
+# arduino ports
 ports = [
     "/dev/ttyACM0",
     "COM4",
@@ -58,10 +59,11 @@ class motorController:
     def syncMotors(self):
         message = floatsToSpeeds(
             self.bottomLeftMotor,
+            self.topRightMotor,
             self.bottomRightMotor,
             self.topLeftMotor,
-            self.topRightMotor,
         )
+        # bl, tr, br, tl
         self.sendMessage(message)
 
 
@@ -240,7 +242,7 @@ def floatsToSpeeds(*args):
     speeds = ""
 
     for arg in args:
-        floatToSpeed(arg, False)
+        arg = floatToSpeed(arg, False)
 
         # round and format to be 4 characters
         speeds += str(int(arg)).replace("-", "N").zfill(4)
