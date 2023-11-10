@@ -4,6 +4,8 @@ import serial  # pip install pyserial
 import os
 
 updateInterval = 0.05  # in seconds - how fast the arduino motors get synced
+deadzone = 0.15  # the min joystick value for it to be percieved
+minMotorPercent = 0.25  # the minimum speed percent for the motors to spin
 
 ports = [
     "/dev/ttyACM0",
@@ -213,21 +215,22 @@ def debug():
     print(f"Bottom right: {floatToSpeed(arduino.bottomRightMotor)}%")
 
 
-def floatToSpeed(arg, returnString=True):
-    deadzone = 0.1
-    minPercent = 0.25
+def floatToSpeed(arg, percent=True):
+    global deadzone, minMotorPercent
 
     if abs(arg) < deadzone:
         return f"0"
 
     # make it start at .25% since that is the min
-    arg = (arg * (1 - minPercent + deadzone)) + (minPercent - deadzone) * arg / abs(arg)
+    arg = (arg * (1 - minMotorPercent + deadzone)) + (
+        minMotorPercent - deadzone
+    ) * arg / abs(arg)
 
     # clamp between -1 and 1
     arg = max(min(arg, 1), -1)
 
     # make pretty
-    if returnString:
+    if percent:
         return f"{int(arg*100)}"
 
     return arg * 255
