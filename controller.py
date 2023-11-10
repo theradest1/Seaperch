@@ -5,8 +5,8 @@ import os
 import traceback
 
 updateInterval = 0.05  # in seconds - how fast the arduino motors get synced
-deadzone = 0.15  # the min joystick value for it to be percieved
-minMotorPercent = 0.25  # the minimum speed percent for the motors to spin
+deadzone = 0.05  # the min joystick value for it to be percieved
+minMotorPercent = 0.39  # the minimum speed percent for the motors to spin
 
 # arduino ports
 ports = [
@@ -52,6 +52,7 @@ class motorController:
         if not self.debugMode:
             self.serial.write((message + "\n").encode())
         debug()
+        print(message)
 
     def close(self):
         if not self.debugMode:
@@ -213,10 +214,10 @@ def debug():
 
     # outputs
     print("\nMotors:")
-    print(f"Top Left: {floatToSpeed(arduino.topLeftMotor)}%")
-    print(f"Top right: {floatToSpeed(arduino.topRightMotor)}%")
-    print(f"Bottom left: {floatToSpeed(arduino.bottomLeftMotor)}%")
-    print(f"Bottom right: {floatToSpeed(arduino.bottomRightMotor)}%")
+    print(f"Top Left: {floatToSpeed(arduino.topLeftMotor, False)}%")
+    print(f"Top right: {floatToSpeed(arduino.topRightMotor, False)}%")
+    print(f"Bottom left: {floatToSpeed(arduino.bottomLeftMotor, False)}%")
+    print(f"Bottom right: {floatToSpeed(arduino.bottomRightMotor, False)}%")
 
 
 def floatToSpeed(arg, percent=True):
