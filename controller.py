@@ -129,6 +129,20 @@ class controller:
             elif axis == 5:  # right trigger
                 self.rightTrigger = (value + 1) / 2
             return
+        elif self.name == "Sony Computer Entertainment Wireless Controller":
+            if axis == 0:  # left stick X
+                self.leftStick = (value, self.leftStick[1])
+            elif axis == 1:  # left stick Y
+                self.leftStick = (self.leftStick[0], -value)
+            elif axis == 2:  # left trigger
+                self.leftTrigger = (value + 1) / 2
+            elif axis == 3:  # right stick X
+                self.rightStick = (value, self.rightStick[1])
+            elif axis == 4:  # right stick Y
+                self.rightStick = (self.rightStick[0], -value)
+            elif axis == 5:  # right trigger
+                self.rightTrigger = (value + 1) / 2
+            return
         elif self.name == "Logitech Gamepad F310":
             if axis == 0:  # left stick X
                 self.leftStick = (value, self.leftStick[1])
@@ -193,14 +207,30 @@ def debug():
 
     # outputs
     print("\nMotors:")
-    print(f"Top Left: {floatToSpeed(arduino.topLeftMotor)}")
-    print(f"Top right: {floatToSpeed(arduino.topRightMotor)}")
-    print(f"Bottom left: {floatToSpeed(arduino.bottomLeftMotor)}")
-    print(f"Bottom right: {floatToSpeed(arduino.bottomRightMotor)}")
+    print(f"Top Left: {floatToSpeed(arduino.topLeftMotor)}%")
+    print(f"Top right: {floatToSpeed(arduino.topRightMotor)}%")
+    print(f"Bottom left: {floatToSpeed(arduino.bottomLeftMotor)}%")
+    print(f"Bottom right: {floatToSpeed(arduino.bottomRightMotor)}%")
 
 
-def floatToSpeed(arg):
-    return f"{max(min(arg, 1), -1):.{3}f}"
+def floatToSpeed(arg, returnString=True):
+    deadzone = 0.1
+    minPercent = 0.25
+
+    if abs(arg) < deadzone:
+        return f"0"
+
+    # make it start at .25% since that is the min
+    arg = (arg * (1 - minPercent + deadzone)) + (minPercent - deadzone) * arg / abs(arg)
+
+    # clamp between -1 and 1
+    arg = max(min(arg, 1), -1)
+
+    # make pretty
+    if returnString:
+        return f"{int(arg*100)}"
+
+    return arg * 255
 
 
 def floatsToSpeeds(*args):
