@@ -2,6 +2,7 @@ import pygame  # pip install pygame
 import time
 import serial  # pip install pyserial
 import os
+import traceback
 
 updateInterval = 0.05  # in seconds - how fast the arduino motors get synced
 deadzone = 0.15  # the min joystick value for it to be percieved
@@ -54,6 +55,7 @@ class motorController:
 
     def close(self):
         if not self.debugMode:
+            self.sendMessage("0000000000000000")
             self.serial.close()
 
     def syncMotors(self):
@@ -310,17 +312,19 @@ arduino = motorController()
 activeController = controller()
 
 printClock = time.time()
-while True:
-    events = pygame.event.get()
-    for event in events:
-        if event.type == pygame.QUIT:
-            exit()
-        activeController.possibleEvent(event)
-    if time.time() - printClock >= updateInterval:
-        translateInputs(activeController, arduino)
-        arduino.syncMotors()
-        printClock = time.time()
-
-arduino.close()
-activeController.close()
-pygame.quit()
+try:
+    while True:
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                exit()
+            activeController.possibleEvent(event)
+        if time.time() - printClock >= updateInterval:
+            translateInputs(activeController, arduino)
+            arduino.syncMotors()
+            printClock = time.time()
+except:
+    arduino.close()
+    activeController.close()
+    pygame.quit()
+    traceback.print_exc()
