@@ -105,9 +105,9 @@ void loop()
 void setMotor(int motor, int speed)
 { 
   //01000100010001000100
-  Serial.print(motor);
+  /*Serial.print(motor);
   Serial.print(" - ");
-  Serial.println(speed);
+  Serial.println(speed);*/
 
   if (motor == -1)
   {
