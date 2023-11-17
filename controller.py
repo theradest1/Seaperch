@@ -36,6 +36,7 @@ class motorController:
         self.bottomRightMotor = 0  # facing up: 2
         self.topLeftMotor = 0  # facing forward: 3
         self.topRightMotor = 0  # facing forward: 4
+        self.gripster = 0
 
         print("\nConnecting to arduino...")
         self.serial = findArduinoPort(baud)
@@ -65,7 +66,7 @@ class motorController:
             self.topRightMotor,
             self.bottomRightMotor,
             self.topLeftMotor,
-        )
+        ) + floatToSpeed(self.gripster, False, True).zfill(4)
         # bl, tr, br, tl
         self.sendMessage(message)
 
@@ -214,31 +215,35 @@ def debug():
 
     # outputs
     print("\nMotors:")
-    print(f"Top Left: {floatToSpeed(arduino.topLeftMotor, False)}%")
-    print(f"Top right: {floatToSpeed(arduino.topRightMotor, False)}%")
-    print(f"Bottom left: {floatToSpeed(arduino.bottomLeftMotor, False)}%")
-    print(f"Bottom right: {floatToSpeed(arduino.bottomRightMotor, False)}%")
+    print(f"Top Left: {floatToSpeed(arduino.topLeftMotor, True)}%")
+    print(f"Top right: {floatToSpeed(arduino.topRightMotor, True)}%")
+    print(f"Bottom left: {floatToSpeed(arduino.bottomLeftMotor, True)}%")
+    print(f"Bottom right: {floatToSpeed(arduino.bottomRightMotor, True)}%")
+    print(f"Arm: {floatToSpeed(arduino.gripster, False, True)} degrees")
 
 
-def floatToSpeed(arg, percent=True):
+def floatToSpeed(arg, percent=True, gripster=False):
     global deadzone, minMotorPercent
 
-    if abs(arg) < deadzone:
-        return f"0"
+    if gripster:
+        return f"{int(arg*260)}"
+    else:
+        if abs(arg) < deadzone:
+            return f"0"
 
-    # make it start at .25% since that is the min
-    arg = (arg * (1 - minMotorPercent + deadzone)) + (
-        minMotorPercent - deadzone
-    ) * arg / abs(arg)
+        # make it start at .25% since that is the min
+        arg = (arg * (1 - minMotorPercent + deadzone)) + (
+            minMotorPercent - deadzone
+        ) * arg / abs(arg)
 
-    # clamp between -1 and 1
-    arg = max(min(arg, 1), -1)
+        # clamp between -1 and 1
+        arg = max(min(arg, 1), -1)
 
-    # make pretty
-    if percent:
-        return f"{int(arg*100)}"
+        # make pretty
+        if percent:
+            return f"{int(arg*100)}"
 
-    return arg * 255
+        return arg * 255
 
 
 def floatsToSpeeds(*args):
@@ -259,10 +264,12 @@ def translateInputs(activeController, arduino):
     arduino.bottomRightMotor = 0
     arduino.topLeftMotor = 0
     arduino.topRightMotor = 0
+    arduino.gripster = 0
 
     # left stick x - roll (none yet)
 
     # left stick y - none
+    arduino.gripster += abs(activeController.leftStick[1]) * 130 / 255
 
     # right stick x - yaw
     arduino.topRightMotor -= activeController.rightStick[0]

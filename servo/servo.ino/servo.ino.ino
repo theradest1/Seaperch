@@ -1,15 +1,16 @@
-int servoPin = 3;
+#include <Servo.h>
+
+Servo vexServo;  // Create a servo object to control the VEX servo
+
+int servoPin = 3; // Change this to the pin where your servo signal wire is connected
 
 void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
+  vexServo.attach(servoPin); // Attach the servo to the specified pin
 }
 
 void loop() {
-  analogWrite(servoPin, 0);
-  Serial.println("255");
-  delay(1000);
-  analogWrite(servoPin, 255);
-  Serial.println("255");
-  delay(1000);
+  vexServo.write(0);
+  delay(1000);    
+  vexServo.write(130); 
+  delay(1000);    
 }

@@ -1,7 +1,13 @@
+#include <Servo.h>
+Servo vexServo;
+
+int armPin = 2;
+
 //    motors:  1, 2,  3,  4
-int pin1s[] = {2, 7, 10, 12};
+int pin1s[] = {22, 7, 10, 12};
 int pin2s[] = {4, 8, 11, 13};
 int pinPWMs[] = {3, 5, 6, 9}; // pin1, pin2, pwm pin
+
 
 // motor 1 = front
 // motor 2 = back
@@ -17,6 +23,9 @@ String stringBuilder = "";
 
 void setup()
 {
+
+  vexServo.attach(armPin);
+
   // set used pins to output
   for (int i = 0; i < motors; i++)
   {
@@ -26,6 +35,7 @@ void setup()
 
   // initialize communication
   Serial.begin(9600);
+
 }
 
 void loop()
@@ -63,9 +73,8 @@ void loop()
     }
 
     // parse each string into an int
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
     {
-
       // load string
       String unparsedSpeed = strSpeeds[i];
 
@@ -99,34 +108,39 @@ void setMotor(int motor, int speed)
   {
     return;
   }
-
-  int pin1 = pin1s[motor];
-  int pin2 = pin2s[motor];
-  int pwmPin = pinPWMs[motor];
-
-  // direction
-  if (speed > 0)
-  {
-    digitalWrite(pin1, HIGH);
-    digitalWrite(pin2, LOW);
+  //Serial.println(motor);
+  if (motor == 4){
+    vexServo.write(speed);
   }
-  else
-  {
-    digitalWrite(pin1, LOW);
-    digitalWrite(pin2, HIGH);
-  }
+  else{
+    int pin1 = pin1s[motor];
+    int pin2 = pin2s[motor];
+    int pwmPin = pinPWMs[motor];
 
-  // speed set
-  if (abs(speed) > minSpeed)
-  {
-    if (abs(speed) <= 255)
+    // direction
+    if (speed > 0)
     {
-      analogWrite(pwmPin, abs(speed)); // from minSpeed-255
+      digitalWrite(pin1, HIGH);
+      digitalWrite(pin2, LOW);
     }
-  }
-  else
-  {
-    analogWrite(pwmPin, 0);
+    else
+    {
+      digitalWrite(pin1, LOW);
+      digitalWrite(pin2, HIGH);
+    }
+
+    // speed set
+    if (abs(speed) > minSpeed)
+    {
+      if (abs(speed) <= 255)
+      {
+        analogWrite(pwmPin, abs(speed)); // from minSpeed-255
+      }
+    }
+    else
+    {
+      analogWrite(pwmPin, 0);
+    }
   }
 
   // Serial.println("Set motor " + String(motor) + " to " + String(speed));
