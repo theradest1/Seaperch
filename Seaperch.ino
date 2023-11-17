@@ -64,7 +64,7 @@ void loop()
     // Serial.println("Received thing: " + stringBuilder);
 
     // split string into parts
-    String strSpeeds[] = {"", "", "", ""};
+    String strSpeeds[] = {"", "", "", "", ""};
     for (int i = 0; i < stringBuilder.length(); i++)
     {
       char currentChar = stringBuilder.charAt(i);
@@ -103,12 +103,16 @@ void loop()
 }
 
 void setMotor(int motor, int speed)
-{
+{ 
+  //01000100010001000100
+  Serial.print(motor);
+  Serial.print(" - ");
+  Serial.println(speed);
+
   if (motor == -1)
   {
     return;
   }
-  //Serial.println(motor);
   if (motor == 4){
     vexServo.write(speed);
   }

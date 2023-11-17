@@ -9,10 +9,7 @@ deadzone = 0.05  # the min joystick value for it to be percieved
 minMotorPercent = 0.39  # the minimum speed percent for the motors to spin
 
 # arduino ports
-ports = [
-    "/dev/ttyACM0",
-    "COM4",
-]
+ports = ["/dev/ttyACM0", "COM4", "COM8", "COM9"]
 
 
 def clearTerminal():
@@ -123,7 +120,9 @@ class controller:
                 self.setAxis(event.axis, event.value)
 
     def setAxis(self, axis, value):
-        if self.name == "PS4 Controller":  # use official name later (and test)
+        if (
+            self.name == "PS4 Controller" or self.name == "Controller (Gamepad F310)"
+        ):  # use official name later (and test)
             if axis == 0:  # left stick X
                 self.leftStick = (value, self.leftStick[1])
             elif axis == 1:  # left stick Y
