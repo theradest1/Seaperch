@@ -221,11 +221,15 @@ def debug():
     print(f"Arm: {floatToSpeed(arduino.gripster, False, True)} degrees")
 
 
+def clamp(current_val, min_val, max_val):
+    return max(min(current_val, max_val), min_val)
+
+
 def floatToSpeed(arg, percent=True, gripster=False):
     global deadzone, minMotorPercent
 
     if gripster:
-        return f"{int(arg*260)}"
+        return f"{clamp(int(arg*260), 0, 180)}"
     else:
         if abs(arg) < deadzone:
             return f"0"
@@ -268,7 +272,7 @@ def translateInputs(activeController, arduino):
     # left stick x - roll (none yet)
 
     # left stick y - none
-    arduino.gripster += abs(activeController.leftStick[1]) * 130 / 255
+    arduino.gripster = (1 - abs(activeController.leftStick[1])) * 0.7
 
     # right stick x - yaw
     arduino.topRightMotor -= activeController.rightStick[0]
