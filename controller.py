@@ -74,6 +74,8 @@ class controller:
         self.rightStick = (0, 0)
         self.leftTrigger = 0
         self.rightTrigger = 0
+        self.leftShoulder = 0
+        self.rightShoulder = 0
 
         print("\nConnecting to controller...")
         # initialize pygame
@@ -118,51 +120,73 @@ class controller:
         else:
             if event.type == pygame.JOYAXISMOTION:
                 self.setAxis(event.axis, event.value)
+            elif event.type == pygame.JOYBUTTONDOWN:
+                self.setAxis(event.button, 1, False)
+            elif event.type == pygame.JOYBUTTONUP:
+                self.setAxis(event.button, 0, False)
 
-    def setAxis(self, axis, value):
+    def setAxis(self, axis, value, isAxis=True):
         if (
             self.name == "PS4 Controller" or self.name == "Controller (Gamepad F310)"
         ):  # use official name later (and test)
-            if axis == 0:  # left stick X
-                self.leftStick = (value, self.leftStick[1])
-            elif axis == 1:  # left stick Y
-                self.leftStick = (self.leftStick[0], -value)
-            elif axis == 4:  # left trigger
-                self.leftTrigger = (value + 1) / 2
-            elif axis == 2:  # right stick X
-                self.rightStick = (value, self.rightStick[1])
-            elif axis == 3:  # right stick Y
-                self.rightStick = (self.rightStick[0], -value)
-            elif axis == 5:  # right trigger
-                self.rightTrigger = (value + 1) / 2
+            if isAxis:
+                if axis == 0:  # left stick X
+                    self.leftStick = (value, self.leftStick[1])
+                elif axis == 1:  # left stick Y
+                    self.leftStick = (self.leftStick[0], -value)
+                elif axis == 4:  # left trigger
+                    self.leftTrigger = (value + 1) / 2
+                elif axis == 2:  # right stick X
+                    self.rightStick = (value, self.rightStick[1])
+                elif axis == 3:  # right stick Y
+                    self.rightStick = (self.rightStick[0], -value)
+                elif axis == 5:  # right trigger
+                    self.rightTrigger = (value + 1) / 2
+            else:
+                if axis == 4:
+                    self.leftShoulder = value
+                elif axis == 5:
+                    self.rightShoulder = value
             return
         elif self.name == "Sony Computer Entertainment Wireless Controller":
-            if axis == 0:  # left stick X
-                self.leftStick = (value, self.leftStick[1])
-            elif axis == 1:  # left stick Y
-                self.leftStick = (self.leftStick[0], -value)
-            elif axis == 2:  # left trigger
-                self.leftTrigger = (value + 1) / 2
-            elif axis == 3:  # right stick X
-                self.rightStick = (value, self.rightStick[1])
-            elif axis == 4:  # right stick Y
-                self.rightStick = (self.rightStick[0], -value)
-            elif axis == 5:  # right trigger
-                self.rightTrigger = (value + 1) / 2
+            if isAxis:
+                if axis == 0:  # left stick X
+                    self.leftStick = (value, self.leftStick[1])
+                elif axis == 1:  # left stick Y
+                    self.leftStick = (self.leftStick[0], -value)
+                elif axis == 2:  # left trigger
+                    self.leftTrigger = (value + 1) / 2
+                elif axis == 3:  # right stick X
+                    self.rightStick = (value, self.rightStick[1])
+                elif axis == 4:  # right stick Y
+                    self.rightStick = (self.rightStick[0], -value)
+                elif axis == 5:  # right trigger
+                    self.rightTrigger = (value + 1) / 2
+            else:
+                if axis == 4:
+                    self.leftShoulder = value
+                elif axis == 5:
+                    self.rightShoulder = value
             return
         elif self.name == "Logitech Gamepad F310":
-            if axis == 0:  # left stick X
-                self.leftStick = (value, self.leftStick[1])
-            elif axis == 1:  # left stick Y
-                self.leftStick = (self.leftStick[0], -value)
-            elif axis == 3:  # right stick X
-                self.rightStick = (value, self.rightStick[1])
-            elif axis == 4:  # right stick Y
-                self.rightStick = (self.rightStick[0], -value)
-            elif axis == 2:  # left trigger
-                self.leftTrigger = (value + 1) / 2
-            elif axis == 5:  # right trigger
-                self.rightTrigger = (value + 1) / 2
+            if isAxis:
+                if axis == 0:  # left stick X
+                    self.leftStick = (value, self.leftStick[1])
+                elif axis == 1:  # left stick Y
+                    self.leftStick = (self.leftStick[0], -value)
+                elif axis == 3:  # right stick X
+                    self.rightStick = (value, self.rightStick[1])
+                elif axis == 4:  # right stick Y
+                    self.rightStick = (self.rightStick[0], -value)
+                elif axis == 2:  # left trigger
+                    self.leftTrigger = (value + 1) / 2
+                elif axis == 5:  # right trigger
+                    self.rightTrigger = (value + 1) / 2
+            else:
+                if axis == 4:
+                    self.leftShoulder = value
+                elif axis == 5:
+                    self.rightShoulder = value
             return
         elif self.name == "keyboard":
             # left stick
@@ -211,6 +235,8 @@ def debug():
     )
     print(f"Right Trigger: {activeController.rightTrigger:.{3}f}")
     print(f"Left Trigger: {activeController.leftTrigger:.{3}f}")
+    print(f"Left Shoulder: {activeController.leftShoulder:.{3}f}")
+    print(f"Right Shoulder: {activeController.rightShoulder:.{3}f}")
 
     # outputs
     print("\nMotors:")
@@ -272,7 +298,8 @@ def translateInputs(activeController, arduino):
     # left stick x - roll (none yet)
 
     # left stick y - none
-    arduino.gripster = (1 - abs(activeController.leftStick[1])) * 0.7
+    arduino.gripster = (1 - activeController.rightShoulder) * 180
+    # (1 - abs(activeController.leftStick[1])) * 0.7
 
     # right stick x - yaw
     arduino.topRightMotor -= activeController.rightStick[0]
