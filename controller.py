@@ -127,7 +127,7 @@ class controller:
 
     def setAxis(self, axis, value, isAxis=True):
         if (
-            self.name == "PS4 Controller" or self.name == "Controller (Gamepad F310)"
+            self.name == "PS4 Controller" or self.name == "Controller (Gamepad F310)" or self.name == "Controller (XBOX 360 For Windows)"
         ):  # use official name later (and test)
             if isAxis:
                 if axis == 0:  # left stick X
