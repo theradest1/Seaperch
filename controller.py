@@ -21,14 +21,16 @@ def findArduinoPort(baud):
     for port in ports:
         try:
             testedPort = serial.Serial(port, baud)
+            print("hi")
             return testedPort
-        except:
+        except Exception as error:
+            print("Error:", error)
             pass
     return "none"
 
 
 class motorController:
-    def __init__(self, baud=9600):
+    def __init__(self, baud=6000):
         self.bottomLeftMotor = 0  # facing up: 1
         self.bottomRightMotor = 0  # facing up: 2
         self.topLeftMotor = 0  # facing forward: 3
@@ -38,7 +40,7 @@ class motorController:
         print("\nConnecting to arduino...")
         self.serial = findArduinoPort(baud)
         if self.serial != "none":
-            print(f"Connected to arduino")
+            print(f"Connected to arduino: " + str(self.serial)) 
             time.sleep(1)
             self.debugMode = False
         else:
