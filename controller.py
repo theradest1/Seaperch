@@ -129,7 +129,7 @@ class controller:
 
     def setAxis(self, axis, value, isAxis=True):
         if (
-            self.name == "PS4 Controller" or self.name == "Controller (Gamepad F310)" or self.name == "Controller (XBOX 360 For Windows)" or self.name == "Generic X-Box pad"
+            self.name == "PS4 Controller" or self.name == "Controller (Gamepad F310)" or self.name == "Controller (XBOX 360 For Windows)"
         ):  # use official name later (and test)
             if isAxis:
                 if axis == 0:  # left stick X
@@ -150,7 +150,7 @@ class controller:
                 elif axis == 5:
                     self.rightShoulder = value
             return
-        elif self.name == "Sony Computer Entertainment Wireless Controller":
+        elif self.name == "Sony Computer Entertainment Wireless Controller" or self.name == "Generic X-Box pad":
             if isAxis:
                 if axis == 0:  # left stick X
                     self.leftStick = (value, self.leftStick[1])
