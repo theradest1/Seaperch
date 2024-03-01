@@ -9,10 +9,10 @@ int pin2s[] = {4, 8, 11, 13};
 int pinPWMs[] = {3, 5, 6, 9}; // pin1, pin2, pwm pin
 
 
-// motor 1 = front
-// motor 2 = back
-// motor 3 = left
-// motor 4 = right
+// motor 1 = bottom left
+// motor 2 = top right
+// motor 3 = bottom right
+// motor 4 = top left
 
 int motors = 4;
 int minSpeed = 100; // so they dont stall and burn out
